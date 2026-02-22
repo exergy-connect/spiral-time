@@ -2,6 +2,16 @@
 
 A beautiful web application that visualizes time flowing according to the golden ratio, where time slows down at the start of each hour and accelerates to align with regular time by the hour's end.
 
+## Live Demo
+
+🌐 **[View the live clock](https://exergy-connect.github.io/spiral-time/)**
+
+## Screenshot
+
+![Universal Spiral Clock](screenshot.png)
+
+*The Universal Spiral Clock displaying spiral time with its cosmic background and golden ratio visualization.*
+
 ## Concept
 
 The Universal Spiral Clock demonstrates a unique time dilation system where **time flows slower at the beginning of each hour and gradually accelerates**, creating a spiral pattern of temporal flow. Every hour, the clock resynchronizes with regular time, ensuring perfect alignment at the top of each hour.
