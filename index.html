@@ -786,20 +786,24 @@
             const spiralTotalHours = spiralTotalSeconds / 3600;
             
             // Calculate time components with full precision
-            // Use modulo to get values within their ranges, but keep full precision
             const hours = (spiralTotalHours % 12);
             const minutes = (spiralTotalMinutes % 60);
             const seconds = (spiralTotalSeconds % 60);
             
-            // Hour hand: 30° per hour, plus 0.5° per minute (since hour hand moves with minutes)
-            // Calculate directly from total hours to avoid jumps at hour boundaries
-            const hourAngleDeg = (spiralTotalHours % 12) * 30 + (spiralTotalMinutes % 60) * 0.5;
+            // Hour hand: Calculate from total hours directly to avoid jumps
+            // 30° per hour, and since 1 hour = 60 minutes, that's 0.5° per minute
+            // Calculate as: totalHours * 30, where totalHours includes fractional minutes
+            let hourAngleDeg = (spiralTotalHours % 12) * 30;
+            // Normalize to 0-360 range to ensure smooth wrap-around
+            hourAngleDeg = ((hourAngleDeg % 360) + 360) % 360;
             
             // Minute hand: 6° per minute, plus 0.1° per second (since minute hand moves with seconds)
-            const minuteAngleDeg = (spiralTotalMinutes % 60) * 6 + (spiralTotalSeconds % 60) * 0.1;
+            let minuteAngleDeg = minutes * 6 + seconds * 0.1;
+            minuteAngleDeg = ((minuteAngleDeg % 360) + 360) % 360;
             
             // Second hand: 6° per second
-            const secondAngleDeg = (spiralTotalSeconds % 60) * 6;
+            let secondAngleDeg = seconds * 6;
+            secondAngleDeg = ((secondAngleDeg % 360) + 360) % 360;
             
             // Apply rotations (CSS rotate uses degrees)
             hourHand.style.transform = `rotate(${hourAngleDeg}deg)`;
