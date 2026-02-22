@@ -616,6 +616,8 @@
 
         // Track previous spiral time to ensure monotonicity
         let previousSpiralSeconds = 0;
+        // Track previous hour hand angle to prevent backward movement
+        let previousHourAngle = 0;
 
         /**
          * Calculate spiral time based on golden ratio
@@ -794,8 +796,26 @@
             // 30° per hour, and since 1 hour = 60 minutes, that's 0.5° per minute
             // Calculate as: totalHours * 30, where totalHours includes fractional minutes
             let hourAngleDeg = (spiralTotalHours % 12) * 30;
-            // Normalize to 0-360 range to ensure smooth wrap-around
-            hourAngleDeg = ((hourAngleDeg % 360) + 360) % 360;
+            
+            // Handle wrap-around: if angle goes from near 360° to 0°, keep it continuous
+            // Check if we've wrapped around (went from > 330° to < 30°)
+            if (previousHourAngle > 330 && hourAngleDeg < 30) {
+                // We've wrapped around - add 360 to maintain continuity
+                hourAngleDeg += 360;
+            }
+            
+            // Ensure the hour hand never moves backward (allow small forward movements)
+            // Only prevent significant backward jumps (> 1 degree)
+            if (hourAngleDeg < previousHourAngle - 1) {
+                // Significant backward movement - use previous value to prevent glitch
+                hourAngleDeg = previousHourAngle;
+            } else {
+                // Update previous angle (allow small backward movements for precision)
+                previousHourAngle = hourAngleDeg;
+            }
+            
+            // Normalize to 0-360 range for CSS
+            hourAngleDeg = hourAngleDeg % 360;
             
             // Minute hand: 6° per minute, plus 0.1° per second (since minute hand moves with seconds)
             let minuteAngleDeg = minutes * 6 + seconds * 0.1;
