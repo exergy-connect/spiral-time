@@ -481,7 +481,7 @@
 
     <div class="container">
         <h1 class="title">Universal Spiral Clock</h1>
-        <p class="subtitle">Time flows slower at the start, aligned by the golden ratio</p>
+        <p class="subtitle">Time flows slower at the start of each interval, aligned by the golden ratio</p>
         
         <div class="clock-container">
             <div class="clock-face">
@@ -500,6 +500,10 @@
 
         <div class="info-panel">
             <div class="info-row">
+                <span class="info-label">Interval (minutes):</span>
+                <input type="number" id="intervalInput" min="1" max="1440" value="60" style="width: 80px; padding: 5px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 5px; color: white; text-align: center;">
+            </div>
+            <div class="info-row">
                 <span class="info-label">Regular Time:</span>
                 <span class="info-value" id="regularTime">00:00:00</span>
             </div>
@@ -512,8 +516,8 @@
                 <span class="info-value" id="dilation">1.000x</span>
             </div>
             <div class="info-row">
-                <span class="info-label">Hour Progress:</span>
-                <span class="info-value" id="hourProgress">0.0%</span>
+                <span class="info-label">Interval Progress:</span>
+                <span class="info-value" id="intervalProgress">0.0%</span>
             </div>
         </div>
     </div>
@@ -532,10 +536,28 @@
         const regularTimeDisplay = document.getElementById('regularTime');
         const spiralTimeDisplay = document.getElementById('spiralTime');
         const dilationDisplay = document.getElementById('dilation');
-        const hourProgressDisplay = document.getElementById('hourProgress');
+        const intervalProgressDisplay = document.getElementById('intervalProgress');
+        const intervalInput = document.getElementById('intervalInput');
         const spiralPath = document.getElementById('spiralPath');
         const starsContainer = document.getElementById('stars');
         const tickMarksContainer = document.getElementById('tickMarks');
+
+        // Get interval from URL parameter or use default
+        function getUrlParameter(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const value = urlParams.get(name);
+            return value !== null ? parseInt(value) : null;
+        }
+
+        // Configurable interval in minutes (default 60)
+        let intervalMinutes = getUrlParameter('interval') || 60;
+        
+        // Validate and clamp interval value
+        if (intervalMinutes < 1) intervalMinutes = 1;
+        if (intervalMinutes > 1440) intervalMinutes = 1440;
+        
+        // Set the input field to match the URL parameter or default
+        intervalInput.value = intervalMinutes;
 
         // Create tick marks for spiral seconds
         function createTickMarks() {
@@ -620,20 +642,50 @@
         let previousSpiralSeconds = 0;
 
         /**
+         * Get regular time in seconds from current date
+         * @returns {number} Total seconds since midnight
+         */
+        function getRegularSeconds() {
+            const now = new Date();
+            return now.getHours() * 3600 + 
+                   now.getMinutes() * 60 + 
+                   now.getSeconds() + 
+                   now.getMilliseconds() / 1000;
+        }
+
+        /**
+         * Ensure spiral time is monotonic (never decreases)
+         * @param {number} spiralTotalSeconds - Calculated spiral time
+         * @returns {number} Monotonic spiral time
+         */
+        function ensureMonotonic(spiralTotalSeconds) {
+            if (spiralTotalSeconds >= previousSpiralSeconds) {
+                previousSpiralSeconds = spiralTotalSeconds;
+                return spiralTotalSeconds;
+            } else {
+                // Small backwards movement - likely precision issue, use previous value
+                return previousSpiralSeconds;
+            }
+        }
+
+        /**
          * Calculate spiral time based on golden ratio
-         * Time flows slower at the start of each hour and accelerates
-         * By the end of the hour, it aligns with regular time
+         * Time flows slower at the start of each interval and accelerates
+         * By the end of the interval, it aligns with regular time
          * 
          * Uses a quadratic function: f(t) = a*t² + b*t + c
          * Where:
          * - f(0) = 1/PHI (slow at start)
          * - f(1) = 1 (normal at end)
-         * - ∫₀¹ f(t) dt = 1 (total time equals 1 hour)
+         * - ∫₀¹ f(t) dt = 1 (total time equals 1 interval)
          */
         function calculateSpiralTime(regularSeconds) {
-            // Get seconds within current hour (0-3600)
-            const secondsInHour = regularSeconds % 3600;
-            const hourProgress = secondsInHour / 3600; // 0 to 1
+            // Get interval in seconds
+            const intervalSeconds = intervalMinutes * 60;
+            
+            // Get seconds within current interval (0 to intervalSeconds)
+            const secondsInInterval = regularSeconds % intervalSeconds;
+            const intervalProgress = secondsInInterval / intervalSeconds; // 0 to 1
             
             // Calculate coefficients for quadratic time dilation function
             // f(t) = a*t² + b*t + c
@@ -651,27 +703,27 @@
             const b = (1 - c) - a; // = (1 - c) + 3*(1 - c) = 4*(1 - c)
             
             // Current time dilation factor (rate of time flow)
-            const dilation = a * hourProgress * hourProgress + b * hourProgress + c;
+            const dilation = a * intervalProgress * intervalProgress + b * intervalProgress + c;
             
             // Calculate accumulated spiral time using closed-form integral
             // ∫₀ᵗ f(u) du = a*t³/3 + b*t²/2 + c*t
-            const spiralProgress = (a * hourProgress * hourProgress * hourProgress / 3) +
-                                 (b * hourProgress * hourProgress / 2) +
-                                 (c * hourProgress);
+            const spiralProgress = (a * intervalProgress * intervalProgress * intervalProgress / 3) +
+                                 (b * intervalProgress * intervalProgress / 2) +
+                                 (c * intervalProgress);
             
             // Convert progress to seconds
-            const spiralSecondsInHour = spiralProgress * 3600;
+            const spiralSecondsInInterval = spiralProgress * intervalSeconds;
             
-            // Get the full hours that have passed
-            const fullHours = Math.floor(regularSeconds / 3600);
+            // Get the full intervals that have passed
+            const fullIntervals = Math.floor(regularSeconds / intervalSeconds);
             
-            // Total spiral time = full hours (normal) + spiral seconds in current hour
-            const totalSpiralSeconds = fullHours * 3600 + spiralSecondsInHour;
+            // Total spiral time = full intervals (normal) + spiral seconds in current interval
+            const totalSpiralSeconds = fullIntervals * intervalSeconds + spiralSecondsInInterval;
             
             return {
                 totalSeconds: totalSpiralSeconds,
                 dilation: dilation,
-                hourProgress: hourProgress
+                intervalProgress: intervalProgress
             };
         }
 
@@ -699,7 +751,7 @@
         /**
          * Update spiral visualization - golden ratio logarithmic spiral
          */
-        function updateSpiral(hourProgress) {
+        function updateSpiral(intervalProgress) {
             const centerX = 200;
             const centerY = 200;
             const maxRadius = 160;
@@ -715,8 +767,8 @@
                 const t = (i / 150) * turns * 2 * Math.PI;
                 // Logarithmic spiral radius
                 const radius = a * Math.exp(b * t);
-                // Limit to max radius and scale by hour progress
-                const scaledRadius = Math.min(radius, maxRadius) * (0.7 + hourProgress * 0.3);
+                // Limit to max radius and scale by interval progress
+                const scaledRadius = Math.min(radius, maxRadius) * (0.7 + intervalProgress * 0.3);
                 const x = centerX + scaledRadius * Math.cos(t);
                 const y = centerY + scaledRadius * Math.sin(t);
                 points.push(`${i === 0 ? 'M' : 'L'} ${x} ${y}`);
@@ -726,31 +778,35 @@
         }
 
         /**
+         * Calculate clock hand angles from spiral time
+         * @param {number} spiralTotalSeconds - Total spiral time in seconds
+         * @returns {Object} Object with hourAngleDeg, minuteAngleDeg, secondAngleDeg
+         */
+        function calculateHandAngles(spiralTotalSeconds) {
+            const seconds = (spiralTotalSeconds % 60);
+            
+            // Hour hand: 12 hours = 43200 seconds = 360°
+            const hourAngleDeg = (spiralTotalSeconds % 43200) / 120;
+            
+            // Minute hand: 60 minutes = 3600 seconds = 360°
+            const minuteAngleDeg = (spiralTotalSeconds % 3600) / 10;
+            
+            // Second hand: 6° per second
+            const secondAngleDeg = seconds * 6;
+            
+            return { hourAngleDeg, minuteAngleDeg, secondAngleDeg };
+        }
+
+        /**
          * Update clock display
          */
         function updateClock() {
-            const now = new Date();
-            const regularSeconds = now.getHours() * 3600 + 
-                                 now.getMinutes() * 60 + 
-                                 now.getSeconds() + 
-                                 now.getMilliseconds() / 1000;
-            
+            const regularSeconds = getRegularSeconds();
             const spiral = calculateSpiralTime(regularSeconds);
             const regularTime = secondsToTime(regularSeconds);
             
-            // Use full precision spiral time (including fractional seconds)
-            let spiralTotalSeconds = spiral.totalSeconds;
-            
-            // Ensure monotonicity (spiral time should never decrease)
-            // Only prevent significant backwards jumps, allow small precision errors
-            if (spiralTotalSeconds >= previousSpiralSeconds) {
-                previousSpiralSeconds = spiralTotalSeconds;
-            } else {
-                // Small backwards movement - likely precision issue, use previous value
-                // But don't freeze - allow time to progress forward again
-                spiralTotalSeconds = previousSpiralSeconds;
-            }
-            
+            // Ensure monotonicity and get spiral time
+            const spiralTotalSeconds = ensureMonotonic(spiral.totalSeconds);
             const spiralTime = secondsToTime(spiralTotalSeconds);
             
             // Update displays (using integer seconds for display)
@@ -770,45 +826,19 @@
                 spiralTime.seconds
             );
             dilationDisplay.textContent = spiral.dilation.toFixed(3) + 'x';
-            hourProgressDisplay.textContent = (spiral.hourProgress * 100).toFixed(1) + '%';
+            intervalProgressDisplay.textContent = (spiral.intervalProgress * 100).toFixed(1) + '%';
             
             // Update spiral visualization
-            updateSpiral(spiral.hourProgress);
+            updateSpiral(spiral.intervalProgress);
             
             // Update tick marks
             updateTickMarks(regularSeconds, spiralTotalSeconds);
             
-            // Calculate angles using full precision spiral time
-            // Hands start pointing up (12 o'clock = 0°), rotate clockwise
-            // Hours: 12 hours = 360°, so 1 hour = 30°
-            // Minutes: 60 minutes = 360°, so 1 minute = 6°
-            // Seconds: 60 seconds = 360°, so 1 second = 6°
-            
-            const spiralTotalMinutes = spiralTotalSeconds / 60;
-            const spiralTotalHours = spiralTotalSeconds / 3600;
-            
-            // Calculate time components with full precision
-            const hours = (spiralTotalHours % 12);
-            const minutes = (spiralTotalMinutes % 60);
-            const seconds = (spiralTotalSeconds % 60);
-            
-            // Simple hour hand calculation: based on spiral seconds
-            // 12 hours = 43200 seconds = 360°
-            // So: angle = (spiralTotalSeconds % 43200) / 43200 * 360
-            const hourAngleDeg = (spiralTotalSeconds % 43200) / 120;
-            
-            // Simple minute hand: based on spiral seconds
-            // 60 minutes = 3600 seconds = 360°
-            // So: angle = (spiralTotalSeconds % 3600) / 10
-            const minuteAngleDeg = (spiralTotalSeconds % 3600) / 10;
-            
-            // Simple second hand: 6° per second
-            const secondAngleDeg = seconds * 6;
-            
-            // Apply rotations (CSS rotate uses degrees)
-            hourHand.style.transform = `rotate(${hourAngleDeg}deg)`;
-            minuteHand.style.transform = `rotate(${minuteAngleDeg}deg)`;
-            secondHand.style.transform = `rotate(${secondAngleDeg}deg)`;
+            // Calculate and apply hand angles
+            const angles = calculateHandAngles(spiralTotalSeconds);
+            hourHand.style.transform = `rotate(${angles.hourAngleDeg}deg)`;
+            minuteHand.style.transform = `rotate(${angles.minuteAngleDeg}deg)`;
+            secondHand.style.transform = `rotate(${angles.secondAngleDeg}deg)`;
         }
 
         // Update clock every frame for smooth animation
@@ -816,6 +846,31 @@
             updateClock();
             requestAnimationFrame(animate);
         }
+
+        /**
+         * Update interval and reset monotonicity tracker
+         * @param {number} newValue - New interval in minutes
+         */
+        function updateInterval(newValue) {
+            intervalMinutes = newValue;
+            // Reset monotonicity tracker when interval changes
+            // Recalculate immediately to set the correct baseline
+            const regularSeconds = getRegularSeconds();
+            const spiral = calculateSpiralTime(regularSeconds);
+            previousSpiralSeconds = spiral.totalSeconds;
+            // Update URL parameter without page reload
+            const url = new URL(window.location);
+            url.searchParams.set('interval', newValue);
+            window.history.replaceState({}, '', url);
+        }
+
+        // Handle interval input changes
+        intervalInput.addEventListener('input', (e) => {
+            const newValue = parseInt(e.target.value);
+            if (newValue >= 1 && newValue <= 1440) {
+                updateInterval(newValue);
+            }
+        });
 
         // Start animation
         animate();
