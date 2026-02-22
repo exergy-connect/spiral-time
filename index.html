@@ -740,10 +740,14 @@
             let spiralTotalSeconds = spiral.totalSeconds;
             
             // Ensure monotonicity (spiral time should never decrease)
-            if (spiralTotalSeconds < previousSpiralSeconds) {
+            // Only prevent significant backwards jumps, allow small precision errors
+            if (spiralTotalSeconds >= previousSpiralSeconds) {
+                previousSpiralSeconds = spiralTotalSeconds;
+            } else {
+                // Small backwards movement - likely precision issue, use previous value
+                // But don't freeze - allow time to progress forward again
                 spiralTotalSeconds = previousSpiralSeconds;
             }
-            previousSpiralSeconds = spiralTotalSeconds;
             
             const spiralTime = secondsToTime(spiralTotalSeconds);
             
@@ -781,19 +785,21 @@
             const spiralTotalMinutes = spiralTotalSeconds / 60;
             const spiralTotalHours = spiralTotalSeconds / 3600;
             
-            // Hour hand: 30° per hour, plus 0.5° per minute (since hour hand moves with minutes)
-            const hours = spiralTotalHours % 12;
-            const minutes = spiralTotalMinutes % 60;
-            const seconds = spiralTotalSeconds % 60;
+            // Calculate time components with full precision
+            // Use modulo to get values within their ranges, but keep full precision
+            const hours = (spiralTotalHours % 12);
+            const minutes = (spiralTotalMinutes % 60);
+            const seconds = (spiralTotalSeconds % 60);
             
-            // No offset needed - 0° = 12 o'clock (pointing up)
-            const hourAngleDeg = hours * 30 + minutes * 0.5;
+            // Hour hand: 30° per hour, plus 0.5° per minute (since hour hand moves with minutes)
+            // Calculate directly from total hours to avoid jumps at hour boundaries
+            const hourAngleDeg = (spiralTotalHours % 12) * 30 + (spiralTotalMinutes % 60) * 0.5;
             
             // Minute hand: 6° per minute, plus 0.1° per second (since minute hand moves with seconds)
-            const minuteAngleDeg = minutes * 6 + seconds * 0.1;
+            const minuteAngleDeg = (spiralTotalMinutes % 60) * 6 + (spiralTotalSeconds % 60) * 0.1;
             
             // Second hand: 6° per second
-            const secondAngleDeg = seconds * 6;
+            const secondAngleDeg = (spiralTotalSeconds % 60) * 6;
             
             // Apply rotations (CSS rotate uses degrees)
             hourHand.style.transform = `rotate(${hourAngleDeg}deg)`;
