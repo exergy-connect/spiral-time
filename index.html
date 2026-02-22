@@ -334,7 +334,6 @@
             position: absolute;
             background: white;
             border-radius: 4px;
-            transform-origin: center bottom;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
         }
 
@@ -344,6 +343,7 @@
             top: 100px;
             left: 197px;
             background: linear-gradient(to top, rgba(255, 255, 255, 0.8), white);
+            transform-origin: 3px 100px; /* Center horizontally (half of 6px width), bottom (100px from top) */
         }
 
         .minute-hand {
@@ -352,6 +352,7 @@
             top: 60px;
             left: 198px;
             background: linear-gradient(to top, rgba(255, 255, 255, 0.8), white);
+            transform-origin: 2px 140px; /* Center horizontally (half of 4px width), bottom (140px from top) */
         }
 
         .second-hand {
@@ -360,6 +361,7 @@
             top: 40px;
             left: 199px;
             background: linear-gradient(to top, rgba(255, 100, 100, 0.8), #ff6464);
+            transform-origin: 1px 160px; /* Center horizontally (half of 2px width), bottom (160px from top) */
         }
 
         .center-dot {
@@ -616,8 +618,6 @@
 
         // Track previous spiral time to ensure monotonicity
         let previousSpiralSeconds = 0;
-        // Track previous hour hand angle to prevent backward movement
-        let previousHourAngle = 0;
 
         /**
          * Calculate spiral time based on golden ratio
@@ -792,38 +792,18 @@
             const minutes = (spiralTotalMinutes % 60);
             const seconds = (spiralTotalSeconds % 60);
             
-            // Hour hand: Calculate from total hours directly to avoid jumps
-            // 30° per hour, and since 1 hour = 60 minutes, that's 0.5° per minute
-            // Calculate as: totalHours * 30, where totalHours includes fractional minutes
-            let hourAngleDeg = (spiralTotalHours % 12) * 30;
+            // Simple hour hand calculation: based on spiral seconds
+            // 12 hours = 43200 seconds = 360°
+            // So: angle = (spiralTotalSeconds % 43200) / 43200 * 360
+            const hourAngleDeg = (spiralTotalSeconds % 43200) / 120;
             
-            // Handle wrap-around: if angle goes from near 360° to 0°, keep it continuous
-            // Check if we've wrapped around (went from > 330° to < 30°)
-            if (previousHourAngle > 330 && hourAngleDeg < 30) {
-                // We've wrapped around - add 360 to maintain continuity
-                hourAngleDeg += 360;
-            }
+            // Simple minute hand: based on spiral seconds
+            // 60 minutes = 3600 seconds = 360°
+            // So: angle = (spiralTotalSeconds % 3600) / 10
+            const minuteAngleDeg = (spiralTotalSeconds % 3600) / 10;
             
-            // Ensure the hour hand never moves backward (allow small forward movements)
-            // Only prevent significant backward jumps (> 1 degree)
-            if (hourAngleDeg < previousHourAngle - 1) {
-                // Significant backward movement - use previous value to prevent glitch
-                hourAngleDeg = previousHourAngle;
-            } else {
-                // Update previous angle (allow small backward movements for precision)
-                previousHourAngle = hourAngleDeg;
-            }
-            
-            // Normalize to 0-360 range for CSS
-            hourAngleDeg = hourAngleDeg % 360;
-            
-            // Minute hand: 6° per minute, plus 0.1° per second (since minute hand moves with seconds)
-            let minuteAngleDeg = minutes * 6 + seconds * 0.1;
-            minuteAngleDeg = ((minuteAngleDeg % 360) + 360) % 360;
-            
-            // Second hand: 6° per second
-            let secondAngleDeg = seconds * 6;
-            secondAngleDeg = ((secondAngleDeg % 360) + 360) % 360;
+            // Simple second hand: 6° per second
+            const secondAngleDeg = seconds * 6;
             
             // Apply rotations (CSS rotate uses degrees)
             hourHand.style.transform = `rotate(${hourAngleDeg}deg)`;
