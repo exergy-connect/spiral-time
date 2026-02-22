@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal Spiral Clock</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0e27;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Galaxy and space background */
+        .space-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        /* Stars */
+        .stars {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: transparent;
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 3s ease-in-out infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        /* Galaxy spirals */
+        .galaxy {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.4;
+            filter: blur(2px);
+            animation: galaxyRotate 120s linear infinite;
+        }
+
+        .galaxy-1 {
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(ellipse at center, 
+                rgba(138, 43, 226, 0.6) 0%,
+                rgba(75, 0, 130, 0.4) 30%,
+                rgba(25, 25, 112, 0.2) 60%,
+                transparent 100%);
+            top: -200px;
+            left: -200px;
+            animation-duration: 180s;
+        }
+
+        .galaxy-2 {
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(ellipse at center,
+                rgba(255, 20, 147, 0.5) 0%,
+                rgba(199, 21, 133, 0.3) 30%,
+                rgba(72, 61, 139, 0.2) 60%,
+                transparent 100%);
+            bottom: -150px;
+            right: -150px;
+            animation-duration: 150s;
+            animation-direction: reverse;
+        }
+
+        .galaxy-3 {
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(ellipse at center,
+                rgba(0, 191, 255, 0.4) 0%,
+                rgba(138, 43, 226, 0.3) 30%,
+                rgba(25, 25, 112, 0.2) 60%,
+                transparent 100%);
+            top: 50%;
+            left: 10%;
+            transform: translateY(-50%);
+            animation-duration: 200s;
+        }
+
+        @keyframes galaxyRotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Solar system */
+        .solar-system {
+            position: absolute;
+            top: 20%;
+            right: 15%;
+            width: 300px;
+            height: 300px;
+            z-index: 1;
+        }
+
+        .sun {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle, #ffd700, #ff8c00);
+            border-radius: 50%;
+            box-shadow: 0 0 20px #ffd700, 0 0 40px #ff8c00;
+            animation: sunPulse 4s ease-in-out infinite;
+            z-index: 10;
+        }
+
+        @keyframes sunPulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 20px #ffd700, 0 0 40px #ff8c00; }
+            50% { transform: translate(-50%, -50%) scale(1.1); box-shadow: 0 0 30px #ffd700, 0 0 60px #ff8c00; }
+        }
+
+        .orbit {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+
+        .orbit-1 { width: 80px; height: 80px; }
+        .orbit-2 { width: 120px; height: 120px; }
+        .orbit-3 { width: 160px; height: 160px; }
+        .orbit-4 { width: 200px; height: 200px; }
+
+        .planet {
+            position: absolute;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform-origin: center center;
+        }
+
+        .planet-1 {
+            width: 6px;
+            height: 6px;
+            background: #8b7355;
+            box-shadow: 0 0 8px #8b7355;
+            animation: orbit1 8s linear infinite;
+        }
+
+        .planet-2 {
+            width: 8px;
+            height: 8px;
+            background: #4169e1;
+            box-shadow: 0 0 10px #4169e1;
+            animation: orbit2 12s linear infinite;
+        }
+
+        .planet-3 {
+            width: 10px;
+            height: 10px;
+            background: #228b22;
+            box-shadow: 0 0 12px #228b22;
+            animation: orbit3 18s linear infinite;
+        }
+
+        .planet-4 {
+            width: 7px;
+            height: 7px;
+            background: #cd5c5c;
+            box-shadow: 0 0 10px #cd5c5c;
+            animation: orbit4 25s linear infinite;
+        }
+
+        @keyframes orbit1 {
+            from { transform: translate(-50%, -50%) rotate(0deg) translateY(-40px); }
+            to { transform: translate(-50%, -50%) rotate(360deg) translateY(-40px); }
+        }
+
+        @keyframes orbit2 {
+            from { transform: translate(-50%, -50%) rotate(0deg) translateY(-60px); }
+            to { transform: translate(-50%, -50%) rotate(360deg) translateY(-60px); }
+        }
+
+        @keyframes orbit3 {
+            from { transform: translate(-50%, -50%) rotate(0deg) translateY(-80px); }
+            to { transform: translate(-50%, -50%) rotate(360deg) translateY(-80px); }
+        }
+
+        @keyframes orbit4 {
+            from { transform: translate(-50%, -50%) rotate(0deg) translateY(-100px); }
+            to { transform: translate(-50%, -50%) rotate(360deg) translateY(-100px); }
+        }
+
+        /* Nebula clouds */
+        .nebula {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(40px);
+            opacity: 0.3;
+            animation: nebulaFloat 30s ease-in-out infinite;
+        }
+
+        .nebula-1 {
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(138, 43, 226, 0.6), transparent);
+            top: 10%;
+            left: 5%;
+            animation-duration: 40s;
+        }
+
+        .nebula-2 {
+            width: 350px;
+            height: 350px;
+            background: radial-gradient(circle, rgba(255, 20, 147, 0.5), transparent);
+            bottom: 15%;
+            left: 20%;
+            animation-duration: 35s;
+            animation-delay: -10s;
+        }
+
+        .nebula-3 {
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(0, 191, 255, 0.4), transparent);
+            top: 60%;
+            right: 10%;
+            animation-duration: 45s;
+            animation-delay: -20s;
+        }
+
+        @keyframes nebulaFloat {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -20px) scale(1.1); }
+            66% { transform: translate(-20px, 30px) scale(0.9); }
+        }
+
+        .container {
+            text-align: center;
+            position: relative;
+            z-index: 10;
+        }
+
+        .clock-container {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            margin: 0 auto 40px;
+        }
+
+        .clock-face {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: rgba(10, 14, 39, 0.7);
+            backdrop-filter: blur(20px);
+            border: 3px solid rgba(255, 255, 255, 0.4);
+            position: relative;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 
+                        0 0 60px rgba(138, 43, 226, 0.3),
+                        inset 0 0 40px rgba(255, 255, 255, 0.1);
+        }
+
+        .spiral-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            height: 90%;
+            border-radius: 50%;
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        .spiral-path {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.5);
+            stroke-width: 2;
+        }
+
+        .tick-marks {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .tick-mark {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 1px;
+            transform-origin: center 200px;
+        }
+
+        .tick-mark.major {
+            width: 2px;
+            height: 12px;
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        .tick-mark.minor {
+            width: 1px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .hour-hand, .minute-hand, .second-hand {
+            position: absolute;
+            background: white;
+            border-radius: 4px;
+            transform-origin: center bottom;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .hour-hand {
+            width: 6px;
+            height: 100px;
+            top: 100px;
+            left: 197px;
+            background: linear-gradient(to top, rgba(255, 255, 255, 0.8), white);
+        }
+
+        .minute-hand {
+            width: 4px;
+            height: 140px;
+            top: 60px;
+            left: 198px;
+            background: linear-gradient(to top, rgba(255, 255, 255, 0.8), white);
+        }
+
+        .second-hand {
+            width: 2px;
+            height: 160px;
+            top: 40px;
+            left: 199px;
+            background: linear-gradient(to top, rgba(255, 100, 100, 0.8), #ff6464);
+        }
+
+        .center-dot {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 16px;
+            height: 16px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            z-index: 10;
+        }
+
+        .time-display {
+            font-size: 3rem;
+            font-weight: 300;
+            letter-spacing: 4px;
+            margin-bottom: 20px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .info-panel {
+            background: rgba(10, 14, 39, 0.7);
+            backdrop-filter: blur(20px);
+            border-radius: 15px;
+            padding: 20px 30px;
+            margin-top: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4),
+                        0 0 30px rgba(138, 43, 226, 0.2);
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            font-size: 0.9rem;
+        }
+
+        .info-label {
+            opacity: 0.8;
+        }
+
+        .info-value {
+            font-weight: 600;
+        }
+
+        .title {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            font-weight: 300;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 30px;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .spiral-indicator {
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .copyright {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.85rem;
+            opacity: 0.7;
+            z-index: 10;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <!-- Space background with galaxies and solar system -->
+    <div class="space-background">
+        <!-- Stars -->
+        <div class="stars" id="stars"></div>
+        
+        <!-- Galaxies -->
+        <div class="galaxy galaxy-1"></div>
+        <div class="galaxy galaxy-2"></div>
+        <div class="galaxy galaxy-3"></div>
+        
+        <!-- Nebulas -->
+        <div class="nebula nebula-1"></div>
+        <div class="nebula nebula-2"></div>
+        <div class="nebula nebula-3"></div>
+        
+        <!-- Solar System -->
+        <div class="solar-system">
+            <div class="sun"></div>
+            <div class="orbit orbit-1">
+                <div class="planet planet-1"></div>
+            </div>
+            <div class="orbit orbit-2">
+                <div class="planet planet-2"></div>
+            </div>
+            <div class="orbit orbit-3">
+                <div class="planet planet-3"></div>
+            </div>
+            <div class="orbit orbit-4">
+                <div class="planet planet-4"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h1 class="title">Universal Spiral Clock</h1>
+        <p class="subtitle">Time flows slower at the start, aligned by the golden ratio</p>
+        
+        <div class="clock-container">
+            <div class="clock-face">
+                <svg class="spiral-overlay" viewBox="0 0 400 400">
+                    <path class="spiral-path" id="spiralPath" d=""/>
+                </svg>
+                <div class="tick-marks" id="tickMarks"></div>
+                <div class="hour-hand" id="hourHand"></div>
+                <div class="minute-hand" id="minuteHand"></div>
+                <div class="second-hand" id="secondHand"></div>
+                <div class="center-dot"></div>
+            </div>
+        </div>
+
+        <div class="time-display" id="timeDisplay">00:00:00</div>
+
+        <div class="info-panel">
+            <div class="info-row">
+                <span class="info-label">Regular Time:</span>
+                <span class="info-value" id="regularTime">00:00:00</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Spiral Time:</span>
+                <span class="info-value" id="spiralTime">00:00:00</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Time Dilation:</span>
+                <span class="info-value" id="dilation">1.000x</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Hour Progress:</span>
+                <span class="info-value" id="hourProgress">0.0%</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="copyright">© 2026 Exergy ∞ LLC</div>
+
+    <script>
+        // Golden ratio constant
+        const PHI = (1 + Math.sqrt(5)) / 2; // ≈ 1.618
+
+        // Get clock elements
+        const hourHand = document.getElementById('hourHand');
+        const minuteHand = document.getElementById('minuteHand');
+        const secondHand = document.getElementById('secondHand');
+        const timeDisplay = document.getElementById('timeDisplay');
+        const regularTimeDisplay = document.getElementById('regularTime');
+        const spiralTimeDisplay = document.getElementById('spiralTime');
+        const dilationDisplay = document.getElementById('dilation');
+        const hourProgressDisplay = document.getElementById('hourProgress');
+        const spiralPath = document.getElementById('spiralPath');
+        const starsContainer = document.getElementById('stars');
+        const tickMarksContainer = document.getElementById('tickMarks');
+
+        // Create tick marks for spiral seconds
+        function createTickMarks() {
+            // Create 60 tick marks (one for each second)
+            for (let i = 0; i < 60; i++) {
+                const tick = document.createElement('div');
+                tick.className = 'tick-mark';
+                // Major tick every 5 seconds
+                if (i % 5 === 0) {
+                    tick.classList.add('major');
+                } else {
+                    tick.classList.add('minor');
+                }
+                tickMarksContainer.appendChild(tick);
+            }
+        }
+
+        // Update tick mark positions based on spiral time
+        function updateTickMarks(regularSeconds, spiralTotalSeconds) {
+            const clockRadius = 200; // Center of 400px clock
+            const tickRadius = 180; // Position ticks near the edge
+            
+            // Get seconds within current minute
+            const regularSecondsInMinute = regularSeconds % 60;
+            const spiralSecondsInMinute = spiralTotalSeconds % 60;
+            
+            // Calculate sync offset: ensures that when regular time is at a minute boundary
+            // (every 60 seconds), the tick marks align at the top
+            // The offset is based on the difference between regular and spiral seconds
+            const syncOffset = ((regularSecondsInMinute - spiralSecondsInMinute) / 60) * 360;
+            
+            const ticks = tickMarksContainer.children;
+            for (let i = 0; i < ticks.length; i++) {
+                const tick = ticks[i];
+                // Position each tick evenly around the clock (60 ticks = 360 degrees)
+                // Start at top (-90 degrees) so tick 0 is at 12 o'clock
+                const baseAngle = (i / 60) * 360 - 90;
+                
+                // Rotate all ticks to show current spiral second position
+                // The ticks rotate as spiral time progresses
+                const spiralRotation = (spiralSecondsInMinute / 60) * 360;
+                
+                // Apply sync offset to ensure alignment at top every 60 regular seconds
+                const angle = baseAngle + spiralRotation - syncOffset;
+                const radians = (angle * Math.PI) / 180;
+                
+                // Position tick on the clock face
+                const x = clockRadius + tickRadius * Math.cos(radians);
+                const y = clockRadius + tickRadius * Math.sin(radians);
+                
+                tick.style.left = x + 'px';
+                tick.style.top = y + 'px';
+                // Rotate tick to point outward from center
+                tick.style.transform = `rotate(${angle + 90}deg)`;
+            }
+        }
+
+        // Initialize tick marks
+        createTickMarks();
+
+        // Generate random stars
+        function generateStars() {
+            const numStars = 200;
+            for (let i = 0; i < numStars; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                const size = Math.random() * 2 + 0.5;
+                star.style.width = size + 'px';
+                star.style.height = size + 'px';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = Math.random() * 3 + 's';
+                star.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                starsContainer.appendChild(star);
+            }
+        }
+
+        // Initialize stars
+        generateStars();
+
+        // Track previous spiral time to ensure monotonicity
+        let previousSpiralSeconds = 0;
+
+        /**
+         * Calculate spiral time based on golden ratio
+         * Time flows slower at the start of each hour and accelerates
+         * By the end of the hour, it aligns with regular time
+         * 
+         * Uses a quadratic function: f(t) = a*t² + b*t + c
+         * Where:
+         * - f(0) = 1/PHI (slow at start)
+         * - f(1) = 1 (normal at end)
+         * - ∫₀¹ f(t) dt = 1 (total time equals 1 hour)
+         */
+        function calculateSpiralTime(regularSeconds) {
+            // Get seconds within current hour (0-3600)
+            const secondsInHour = regularSeconds % 3600;
+            const hourProgress = secondsInHour / 3600; // 0 to 1
+            
+            // Calculate coefficients for quadratic time dilation function
+            // f(t) = a*t² + b*t + c
+            // Constraints:
+            // f(0) = 1/PHI (slow at start), f(1) = 1 (normal at end), ∫₀¹ f(t) dt = 1
+            const c = 1 / PHI; // f(0) ≈ 0.618
+            // f(1) = a + b + c = 1, so a + b = 1 - c
+            // ∫₀¹ f(t) dt = a/3 + b/2 + c = 1
+            // Substituting b = 1 - c - a:
+            // a/3 + (1 - c - a)/2 + c = 1
+            // a/3 - a/2 + 1/2 - c/2 + c = 1
+            // -a/6 = 1 - 1/2 - c/2 = 1/2 - c/2 = (1 - c)/2
+            // a = -3*(1 - c) = -3*(1 - 1/PHI)
+            const a = -3 * (1 - c);
+            const b = (1 - c) - a; // = (1 - c) + 3*(1 - c) = 4*(1 - c)
+            
+            // Current time dilation factor (rate of time flow)
+            const dilation = a * hourProgress * hourProgress + b * hourProgress + c;
+            
+            // Calculate accumulated spiral time using closed-form integral
+            // ∫₀ᵗ f(u) du = a*t³/3 + b*t²/2 + c*t
+            const spiralProgress = (a * hourProgress * hourProgress * hourProgress / 3) +
+                                 (b * hourProgress * hourProgress / 2) +
+                                 (c * hourProgress);
+            
+            // Convert progress to seconds
+            const spiralSecondsInHour = spiralProgress * 3600;
+            
+            // Get the full hours that have passed
+            const fullHours = Math.floor(regularSeconds / 3600);
+            
+            // Total spiral time = full hours (normal) + spiral seconds in current hour
+            const totalSpiralSeconds = fullHours * 3600 + spiralSecondsInHour;
+            
+            return {
+                totalSeconds: totalSpiralSeconds,
+                dilation: dilation,
+                hourProgress: hourProgress
+            };
+        }
+
+        /**
+         * Convert seconds to time components
+         */
+        function secondsToTime(totalSeconds) {
+            const hours = Math.floor(totalSeconds / 3600) % 24;
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = Math.floor(totalSeconds % 60);
+            return { hours, minutes, seconds };
+        }
+
+        /**
+         * Format time as HH:MM:SS
+         */
+        function formatTime(hours, minutes, seconds) {
+            return [
+                String(hours).padStart(2, '0'),
+                String(minutes).padStart(2, '0'),
+                String(seconds).padStart(2, '0')
+            ].join(':');
+        }
+
+        /**
+         * Update spiral visualization - golden ratio logarithmic spiral
+         */
+        function updateSpiral(hourProgress) {
+            const centerX = 200;
+            const centerY = 200;
+            const maxRadius = 160;
+            const turns = 2.5;
+            const points = [];
+            
+            // Create a logarithmic spiral: r = a * e^(b*θ)
+            // Using golden ratio: each turn expands by PHI
+            const a = 10; // Starting radius
+            const b = Math.log(PHI) / (2 * Math.PI); // Growth factor
+            
+            for (let i = 0; i <= 150; i++) {
+                const t = (i / 150) * turns * 2 * Math.PI;
+                // Logarithmic spiral radius
+                const radius = a * Math.exp(b * t);
+                // Limit to max radius and scale by hour progress
+                const scaledRadius = Math.min(radius, maxRadius) * (0.7 + hourProgress * 0.3);
+                const x = centerX + scaledRadius * Math.cos(t);
+                const y = centerY + scaledRadius * Math.sin(t);
+                points.push(`${i === 0 ? 'M' : 'L'} ${x} ${y}`);
+            }
+            
+            spiralPath.setAttribute('d', points.join(' '));
+        }
+
+        /**
+         * Update clock display
+         */
+        function updateClock() {
+            const now = new Date();
+            const regularSeconds = now.getHours() * 3600 + 
+                                 now.getMinutes() * 60 + 
+                                 now.getSeconds() + 
+                                 now.getMilliseconds() / 1000;
+            
+            const spiral = calculateSpiralTime(regularSeconds);
+            const regularTime = secondsToTime(regularSeconds);
+            
+            // Use full precision spiral time (including fractional seconds)
+            let spiralTotalSeconds = spiral.totalSeconds;
+            
+            // Ensure monotonicity (spiral time should never decrease)
+            if (spiralTotalSeconds < previousSpiralSeconds) {
+                spiralTotalSeconds = previousSpiralSeconds;
+            }
+            previousSpiralSeconds = spiralTotalSeconds;
+            
+            const spiralTime = secondsToTime(spiralTotalSeconds);
+            
+            // Update displays (using integer seconds for display)
+            timeDisplay.textContent = formatTime(
+                spiralTime.hours, 
+                spiralTime.minutes, 
+                spiralTime.seconds
+            );
+            regularTimeDisplay.textContent = formatTime(
+                regularTime.hours,
+                regularTime.minutes,
+                regularTime.seconds
+            );
+            spiralTimeDisplay.textContent = formatTime(
+                spiralTime.hours,
+                spiralTime.minutes,
+                spiralTime.seconds
+            );
+            dilationDisplay.textContent = spiral.dilation.toFixed(3) + 'x';
+            hourProgressDisplay.textContent = (spiral.hourProgress * 100).toFixed(1) + '%';
+            
+            // Update spiral visualization
+            updateSpiral(spiral.hourProgress);
+            
+            // Update tick marks
+            updateTickMarks(regularSeconds, spiralTotalSeconds);
+            
+            // Calculate angles using full precision spiral time
+            // Hands start pointing up (12 o'clock = 0°), rotate clockwise
+            // Hours: 12 hours = 360°, so 1 hour = 30°
+            // Minutes: 60 minutes = 360°, so 1 minute = 6°
+            // Seconds: 60 seconds = 360°, so 1 second = 6°
+            
+            const spiralTotalMinutes = spiralTotalSeconds / 60;
+            const spiralTotalHours = spiralTotalSeconds / 3600;
+            
+            // Hour hand: 30° per hour, plus 0.5° per minute (since hour hand moves with minutes)
+            const hours = spiralTotalHours % 12;
+            const minutes = spiralTotalMinutes % 60;
+            const seconds = spiralTotalSeconds % 60;
+            
+            // No offset needed - 0° = 12 o'clock (pointing up)
+            const hourAngleDeg = hours * 30 + minutes * 0.5;
+            
+            // Minute hand: 6° per minute, plus 0.1° per second (since minute hand moves with seconds)
+            const minuteAngleDeg = minutes * 6 + seconds * 0.1;
+            
+            // Second hand: 6° per second
+            const secondAngleDeg = seconds * 6;
+            
+            // Apply rotations (CSS rotate uses degrees)
+            hourHand.style.transform = `rotate(${hourAngleDeg}deg)`;
+            minuteHand.style.transform = `rotate(${minuteAngleDeg}deg)`;
+            secondHand.style.transform = `rotate(${secondAngleDeg}deg)`;
+        }
+
+        // Update clock every frame for smooth animation
+        function animate() {
+            updateClock();
+            requestAnimationFrame(animate);
+        }
+
+        // Start animation
+        animate();
+    </script>
+</body>
+</html>
